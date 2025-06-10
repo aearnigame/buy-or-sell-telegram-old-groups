@@ -1,0 +1,380 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy & Sell Telegram Groups</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #F5F5F5;
+            color: #333;
+            overflow-x: hidden;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #D3D3D3, #F5F5F5);
+            z-index: -1;
+            transition: background-position 0.1s ease;
+        }
+        .header {
+            background: #333;
+            color: #FFF;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: slideDown 1s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .content {
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .content p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 17px;
+            background: #FFF;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: filter 0.3s ease, transform 0.3s ease;
+        }
+        .btn:hover {
+            filter: blur(2px);
+            transform: scale(1.05);
+        }
+        .year-selection {
+            display: none;
+            margin: 20px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .year-selection select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .proceed-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            background: #333;
+            color: #FFF;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .proceed-btn:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: blurIn 0.5s ease;
+        }
+        @keyframes blurIn {
+            from { backdrop-filter: blur(0); }
+            to { backdrop-filter: blur(5px); }
+        }
+        .modal-content {
+            background: #FFF;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #CCC;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            background: #333;
+            color: #FFF;
+            cursor: pointer;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .carousel {
+            max-width: 800px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .carousel-item {
+            display: none;
+            padding: 20px;
+            background: #FFF;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .carousel-item.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .carousel-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .carousel-item a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #333;
+            color: #FFF;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .earning-hopes {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        .footer {
+            background: #333;
+            color: #FFF;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+        }
+        .footer a {
+            color: #FFF;
+            margin: 0 10px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer a:hover {
+            color: #CCC;
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="background"></div>
+    <div class="header">
+        <h1>Made easy to SELL or BUY with Anirudh Artist</h1>
+    </div>
+    <div class="content">
+        <p>Buy or sell old Telegram groups effortlessly.</p>
+        <p>Join our community to trade Telegram groups today!</p>
+        <div class="buttons">
+            <button class="btn" onclick="showYearSelection('buy')">BUY</button>
+            <button class="btn" onclick="showYearSelection('sell')">SELL</button>
+            <button class="btn" onclick="window.location.href='https://spf.bio/FIRnB'">CONTACT ANIRUDH</button>
+        </div>
+        <div class="year-selection" id="buy-selection">
+            <h2>Select Year for Buying</h2>
+            <select id="buy-year">
+                <option value="2024">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="less-2020">Less than 2020</option>
+            </select>
+            <button class="proceed-btn" onclick="proceed('buy')">Proceed</button>
+        </div>
+        <div class="year-selection" id="sell-selection">
+            <h2>Select Year for Selling</h2>
+            <select id="sell-year">
+                <option value="2024">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="less-2020">Less than 2020</option>
+            </select>
+            <button class="proceed-btn" onclick="proceed('sell')">Proceed</button>
+        </div>
+        <div class="carousel">
+            <div class="carousel-item active">
+                <img src="https://i.ibb.co/DfvgW1BD/photo-2025-06-10-15-44-56.jpg" alt="Sketch Website">
+                <h3>Sketch Website</h3>
+                <p>Explore amazing sketches and artwork.</p>
+                <a href="https://bit.ly/aniartxxx">Visit Now</a>
+            </div>
+            <div class="carousel-item">
+                <img src="https://i.ibb.co/dsSp7K8f/anixxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg" alt="Dropshipping Course">
+                <h3>Dropshipping Course</h3>
+                <p>Learn dropshipping with our comprehensive course.</p>
+                <a href="https://superprofile.bio/course/Indian-Dropshipping-Mastery">Enroll Now</a>
+            </div>
+            <div class="carousel-item">
+                <img src="https://i.ibb.co/gM12c1Kt/photo-2025-06-10-15-46-30.jpg" alt="Instagram Personal">
+                <h3>Instagram Personal</h3>
+                <p>Follow my personal journey on Instagram.</p>
+                <a href="https://instagram.com/anirudh_karamungikar">Follow</a>
+            </div>
+            <div class="carousel-item">
+                <img src="https://i.ibb.co/dw9cFTH5/Chhatrapati-Shivaji-Maharaj-charcoal-pencil-on-paper-Anirudh-Karamungikar.png" alt="Art Account">
+                <h3>Art Account</h3>
+                <p>Discover my art creations on Instagram.</p>
+                <a href="https://instagram.com/anirudhartx">View Art</a>
+            </div>
+        </div>
+        <div class="earning-hopes">
+            <h2>Earnings Potential</h2>
+            <p>Trading old Telegram groups can yield profits up to $500 per group, depending on age, size, and activity level.</p>
+        </div>
+    </div>
+    <div class="modal" id="terms-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('terms-modal')">&times;</span>
+            <h2>Terms and Conditions</h2>
+            <p>By using this website, you agree to our terms of service, including fair trading practices and privacy policies. All transactions are subject to verification, and users must comply with Telegram's guidelines.</p>
+        </div>
+    </div>
+    <div class="modal" id="signup-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('signup-modal')">&times;</span>
+            <h2>Sign Up</h2>
+            <form action="https://formspree.io/f/xldnjzer" method="POST">
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="text" name="telegram_username" placeholder="Telegram Username" required>
+                <input type="tel" name="number" placeholder="Phone Number" required>
+                <input type="number" name="age" placeholder="Age" required>
+                <input type="text" name="address" placeholder="Address" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    <div class="footer">
+        <p>Owned by <a href="https://www.instagram.com/anirudh_karamungikar/">ANIRUDH KARAMUNGIKAR (ARTIST)</a> © 2025 | 
+        <a href="#" onclick="showModal('signup-modal')">Sign Up</a> | 
+        <a href="#" onclick="showModal('terms-modal')">Terms and Conditions</a></p>
+    </div>
+    <script>
+        function showYearSelection(type) {
+            document.getElementById('buy-selection').style.display = type === 'buy' ? 'block' : 'none';
+            document.getElementById('sell-selection').style.display = type === 'sell' ? 'block' : 'none';
+        }
+        function proceed(type) {
+            const year = document.getElementById(type + '-year').value;
+            const message = type === 'buy' 
+                ? `Hi, I want to buy an old Telegram group. Please share details.`
+                : `Hi, I want to sell my old Telegram group. Please guide me.`;
+            window.location.href = `https://wa.me/919860730275?text=${encodeURIComponent(message)}`;
+        }
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        let carouselItems = document.querySelectorAll('.carousel-item');
+        let currentItem = 0;
+        function nextSlide() {
+            carouselItems[currentItem].classList.remove('active');
+            currentItem = (currentItem + 1) % carouselItems.length;
+            carouselItems[currentItem].classList.add('active');
+        }
+        setInterval(nextSlide, 5000);
+        const background = document.getElementById('background');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            background.style.backgroundPosition = `${x * 20}px ${y * 20}px`;
+        });
+    </script>
+</body>
+</html>
